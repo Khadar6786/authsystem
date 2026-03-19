@@ -1,8 +1,14 @@
 package com.example.authsystem.controller;
 
+import com.example.authsystem.dto.LoginRequest;
+import com.example.authsystem.dto.LoginResponse;
+import com.example.authsystem.dto.RegisterRequest;
+import com.example.authsystem.dto.RegisterResponse;
 import com.example.authsystem.model.User;
 import com.example.authsystem.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +38,28 @@ public class AuthController {
         return "redirect:/login?registered";
     }
 
+    @PostMapping("/api/register")
+    @ResponseBody
+    public ResponseEntity<RegisterResponse> apiRegister(@Valid @RequestBody RegisterRequest request) {
+        User registeredUser = userService.registerUser(request);
+        RegisterResponse response = new RegisterResponse(
+                registeredUser.getId(),
+                registeredUser.getUsername(),
+                "User registered successfully"
+        );
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/api/login")
     @ResponseBody
-    public String apiLogin(@RequestBody User user){
-        return userService.loginUser(user.getUsername(), user.getPassword());
+    public ResponseEntity<LoginResponse> apiLogin(@Valid @RequestBody LoginRequest request){
+        User user = userService.loginUser(request);
+        LoginResponse response = new LoginResponse(
+                "Login successful",
+                user.getUsername(),
+                null
+        );
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/home")
