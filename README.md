@@ -5,6 +5,7 @@ A secure authentication and authorization system built with Spring Boot 4.0.2 an
 ## Features
 
 - ✅ **User Registration & Login** - Form-based authentication with custom login pages
+- ✅ **Google OAuth2 Login** - Sign in with Google account
 - ✅ **REST API Authentication** - Programmatic login via REST endpoints
 - ✅ **Input Validation** - Email format validation, password minimum 8 characters
 - ✅ **Error Handling** - Proper HTTP status codes (400, 401, 409) for different error scenarios
@@ -14,15 +15,17 @@ A secure authentication and authorization system built with Spring Boot 4.0.2 an
 - ✅ **Duplicate Username Validation** - Prevents registration with existing usernames
 - ✅ **Role-Based Access Control** - Support for USER and ADMIN roles
 - ✅ **Custom UserDetailsService** - Database-backed user authentication
+- ✅ **OAuth2 Auto-Registration** - Automatic user creation from Google login
 - ✅ **H2 Database** - In-memory database for development
-- ✅ **Modern UI** - Responsive Bootstrap 5 design
+- ✅ **MySQL Support** - Production-ready MySQL database
+- ✅ **Modern UI** - Responsive Bootstrap 5 design with Google Sign-In button
 - ✅ **H2 Console** - Built-in database management interface
 
 ## Tech Stack
 
 - **Backend:** Spring Boot 4.0.2
-- **Security:** Spring Security 7.0.2
-- **Database:** H2 (in-memory)
+- **Security:** Spring Security 7.0.2 + OAuth2 Client
+- **Database:** H2 (development), MySQL (production)
 - **ORM:** Spring Data JPA / Hibernate
 - **Template Engine:** Thymeleaf
 - **Frontend:** Bootstrap 5
@@ -51,12 +54,14 @@ authsystem/
 │   │   │   │   ├── InvalidCredentialsException.java
 │   │   │   │   └── BadRequestException.java
 │   │   │   ├── model/
-│   │   │   │   └── User.java                    # User entity
+│   │   │   │   └── User.java                    # User entity (with OAuth2 support)
 │   │   │   ├── repository/
 │   │   │   │   └── UserRepository.java          # JPA repository
 │   │   │   ├── service/
 │   │   │   │   ├── UserService.java             # Business logic
-│   │   │   │   └── CustomUserDetailsService.java # UserDetailsService implementation
+│   │   │   │   ├── CustomUserDetailsService.java # UserDetailsService implementation
+│   │   │   │   ├── CustomOAuth2UserService.java # OAuth2 login handler
+│   │   │   │   └── GoogleOAuth2Config.java      # OAuth2 configuration properties
 │   │   │   └── AuthsystemApplication.java       # Main application class
 │   │   └── resources/
 │   │       ├── templates/
@@ -109,11 +114,12 @@ authsystem/
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/` | Redirects to home page |
-| GET | `/login` | Login page |
+| GET | `/login` | Login page (with Google Sign-In option) |
 | POST | `/login` | Process login form (Spring Security) |
 | GET | `/register` | Registration page |
 | POST | `/register` | Process registration form |
 | GET | `/home` | Home page (authenticated) |
+| GET | `/oauth2/authorization/google` | Initiate Google OAuth2 login |
 
 ### REST API Endpoints
 
@@ -156,6 +162,13 @@ authsystem/
 - Enhanced security by controlling exposed data
 - Better API contract definition
 
+### OAuth2 Login
+- **Google Sign-In**: Users can login with their Google account
+- **Auto-Registration**: New users automatically created on first Google login
+- **Email & Profile**: Fetches user email and basic info from Google
+- **Dual Authentication**: Both traditional and OAuth2 login work side-by-side
+- **No Password Required**: Google-authenticated users don't need local password
+
 ### Access Control
 - Public access: `/login`, `/register`, `/api/login`, `/h2-console`
 - Admin-only: `/admin/**`
@@ -175,11 +188,26 @@ authsystem/
 | Column | Type | Description |
 |--------|------|-------------|
 | id | Long | Primary key (auto-generated) |
-| username | String | Unique username |
+| username | String | Unique username (email for OAuth2 users) |
 | password | String | BCrypt-hashed password (never exposed in API) |
+| email | String | User email address |
 | role | String | User role (USER/ADMIN) |
+| provider | String | OAuth2 provider name (e.g., "google") |
+| providerId | String | OAuth2 provider user ID
 
 ## Usage Examples
+
+### Login with Google OAuth2
+
+1. Navigate to http://localhost:8080/login
+2. Click "Sign in with Google" button
+3. Select your Google account
+4. Grant permissions if prompted
+5. Automatically redirected to home page
+6. **First-time users**: Account automatically created with your email
+7. **Returning users**: Instant login
+
+**Note:** You need to configure Google OAuth2 credentials first. See [OAUTH2_SETUP.md](OAUTH2_SETUP.md) for detailed setup instructions.
 
 ### Register a New User (Web UI)
 
