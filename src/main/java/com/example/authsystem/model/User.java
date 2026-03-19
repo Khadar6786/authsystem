@@ -17,5 +17,13 @@ public class User {
 
     private String password;
 
+    private String email;
+
     private String role;
+
+    // OAuth2 provider fields
+    private String provider;
+    
+    @Column(name = "provider_id")
+    private String providerId;
 }
